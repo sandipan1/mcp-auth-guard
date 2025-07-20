@@ -17,7 +17,6 @@ A modern, developer-friendly authorization system designed specifically for [Mod
 ## User Flow 
 
 ```mermaid
-
 graph TD
     User["User/Client"]
     Request["Incoming MCP Request"]
@@ -58,7 +57,6 @@ graph TD
     Deny --> Response
     Filter --> Response
     Response --> User
-
 ```
 
 ## 🚀 Quick Start
