@@ -19,8 +19,12 @@ A modern, developer-friendly authorization system designed specifically for [Mod
 ```mermaid
 graph TD
     User["User/Client"]
-    Request["Incoming MCP Request"]
-    Middleware["AuthGuard Middleware"]
+    Request["MCP Request"]
+    
+    subgraph "MCP Server"
+        AuthMiddleware["AuthGuard Middleware"]
+        MCPTools["MCP Tools/Resources/Prompts"]
+    end
     
     subgraph "Authentication Phase"
         Auth["Identity Manager"]
@@ -34,28 +38,29 @@ graph TD
     
     subgraph "Execution"
         Allowed{"Authorized?"}
-        Execute["Execute Request"]
+        ToolExecution["Execute Tool/Resource/Prompt"]
         Deny["Access Denied"]
-        Filter["Filter Results"]
+        Filter["Filter Components"]
     end
     
-    Response["Response"]
+    Response["MCP Response"]
     
     User --> Request
-    Request --> Middleware
-    Middleware --> Auth
+    Request --> AuthMiddleware
+    AuthMiddleware --> Auth
     Auth --> AuthResult
     AuthResult --> Policy
     Policy --> Decision
     Decision --> Allowed
     
-    Allowed -->|Yes| Execute
+    Allowed -->|Yes| ToolExecution
     Allowed -->|No| Deny
     Allowed -->|List Ops| Filter
     
-    Execute --> Response
-    Deny --> Response
+    ToolExecution --> MCPTools
+    MCPTools --> Response
     Filter --> Response
+    Deny --> Response
     Response --> User
 ```
 
