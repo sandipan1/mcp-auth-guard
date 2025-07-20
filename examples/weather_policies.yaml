@@ -1,0 +1,67 @@
+# Weather Service Authorization Policies
+# Demonstrates intuitive YAML policy configuration with MCP Auth Guard
+
+name: "weather_service_policy"
+description: "Authorization policies for planetary weather service"
+version: "1.0"
+default_effect: "deny"
+
+rules:
+  # Admin users get full access to everything
+  - name: "admin_full_access"
+    description: "Administrators have unrestricted access"
+    effect: "allow"
+    agents:
+      roles: ["admin"]
+    tools:
+      patterns: ["*"]  # All tools
+    actions: ["list", "call"]
+    priority: 1000
+
+  # Regular users can access Mars and Venus weather
+  - name: "user_basic_weather"
+    description: "Users can check Mars and Venus weather"
+    effect: "allow"
+    agents:
+      roles: ["user"]
+    tools:
+      names: ["get_mars_weather", "get_venus_weather"]
+    actions: ["list", "call"]
+    priority: 500
+
+  # Interns can only see Jupiter weather at night
+  - name: "intern_jupiter_night_only"
+    description: "Interns can only check Jupiter weather at night"
+    effect: "allow"
+    agents:
+      roles: ["intern"]
+    tools:
+      names: ["get_jupiter_weather"]
+    actions: ["call"]
+    conditions:
+      - field: "tool.args.time"
+        operator: "equals"
+        value: "night"
+    priority: 300
+
+  # Allow all authenticated users to list Jupiter weather (but not call it)
+  - name: "list_jupiter_for_all"
+    description: "All users can see Jupiter weather in listings"
+    effect: "allow"
+    agents:
+      roles: ["user", "intern"]
+    tools:
+      names: ["get_jupiter_weather"]
+    actions: ["list"]
+    priority: 200
+
+  # Special rule: Block Saturn access for safety (dangerous radiation)
+  - name: "block_saturn_for_safety"
+    description: "Saturn weather is blocked due to radiation safety"
+    effect: "deny"
+    agents:
+      roles: ["user", "intern"]  # Only admins can access
+    tools:
+      names: ["get_saturn_weather"]
+    actions: ["*"]
+    priority: 800

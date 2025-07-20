@@ -1,0 +1,53 @@
+# Secure Policy Deployment Example
+# Shows how to implement policy governance at different levels
+
+# Base Admin Policy (Protected - Cannot be removed)
+name: "base_admin_policy"
+description: "Protected admin access - cannot be modified via API"
+version: "1.0"
+default_effect: "deny"
+
+rules:
+  # Super admin always has access to everything
+  - name: "super_admin_access"
+    effect: "allow"
+    agents:
+      user_id: ["security@company.com", "cto@company.com"]
+    tools:
+      patterns: ["*"]
+    actions: ["*"]
+    priority: 2000
+  
+  # Policy admin can manage policies
+  - name: "policy_admin_access"
+    effect: "allow"
+    agents:
+      roles: ["policy_admin"]
+    tools:
+      names: ["add_policy", "remove_policy", "list_policies"]
+    actions: ["call"]
+    priority: 1500
+    
+  # Security team can view audit logs
+  - name: "security_audit_access"
+    effect: "allow"
+    agents:
+      roles: ["security_team"]
+    tools:
+      patterns: ["audit_*", "log_*"]
+    actions: ["call", "list"]
+    priority: 1000
+
+  # Emergency access procedure
+  - name: "emergency_override"
+    effect: "allow"
+    agents:
+      user_id: ["emergency@company.com"]
+    tools:
+      patterns: ["*"]
+    actions: ["*"]
+    conditions:
+      - field: "user.claims.emergency_code"
+        operator: "equals"
+        value: "INCIDENT_2024"
+    priority: 3000
