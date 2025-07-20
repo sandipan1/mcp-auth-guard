@@ -3,7 +3,7 @@ name = "mcp-auth-guard"
 version = "1.0.0"
 description = "Intuitive authorization middleware for MCP tools with type-safe policies"
 authors = [
-    { name = "MCP Auth Guard Contributors", email = "info@mcp-auth-guard.dev" }
+    { name = "Sandipan Haldar", email = "work@sandipanhaldar.com" }
 ]
 license = "Apache-2.0"
 readme = "README.md"
