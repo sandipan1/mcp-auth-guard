@@ -14,6 +14,53 @@ A modern, developer-friendly authorization system designed specifically for [Mod
 - 🛠️ **Type-safe APIs**: Fluent policy builders with full type safety
 - 🚀 **Developer-first**: Simple integration, great debugging experience
 
+## User Flow 
+
+```mermaid
+
+graph TD
+    User["User/Client"]
+    Request["Incoming MCP Request"]
+    Middleware["AuthGuard Middleware"]
+    
+    subgraph "Authentication Phase"
+        Auth["Identity Manager"]
+        AuthResult["Auth Context"]
+    end
+    
+    subgraph "Authorization Phase"
+        Policy["Policy Engine"]
+        Decision["Access Decision"]
+    end
+    
+    subgraph "Execution"
+        Allowed{"Authorized?"}
+        Execute["Execute Request"]
+        Deny["Access Denied"]
+        Filter["Filter Results"]
+    end
+    
+    Response["Response"]
+    
+    User --> Request
+    Request --> Middleware
+    Middleware --> Auth
+    Auth --> AuthResult
+    AuthResult --> Policy
+    Policy --> Decision
+    Decision --> Allowed
+    
+    Allowed -->|Yes| Execute
+    Allowed -->|No| Deny
+    Allowed -->|List Ops| Filter
+    
+    Execute --> Response
+    Deny --> Response
+    Filter --> Response
+    Response --> User
+
+```
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -182,6 +229,28 @@ proxy_server.run(transport="http", port=4200)
 - **Security**: Automatically blocks dangerous SQL operations (DROP, DELETE, ALTER) for non-admin users
 
 **Benefits**: ✅ No server changes ✅ Role-based DB access ✅ SQL injection prevention ✅ Audit logging
+
+```mermaid 
+sequenceDiagram
+    participant User
+    participant ClientApp as Client/SDK
+    participant ProxyServer as FastMCP Proxy Server (with Auth)
+    participant Backend as Backend MCP Server
+
+    User->>ClientApp: Sends tool call request (with API key)
+    ClientApp->>ProxyServer: Forwards request (includes API key in header)
+    ProxyServer->>ProxyServer: Auth middleware checks API key, assigns roles
+    alt Authorized
+        ProxyServer->>Backend: Proxies tool call to backend MCP server
+        Backend-->>ProxyServer: Returns tool result
+        ProxyServer-->>ClientApp: Returns result
+        ClientApp-->>User: Shows result
+    else Not authorized
+        ProxyServer-->>ClientApp: Returns authorization error
+        ClientApp-->>User: Shows error
+    end
+
+```
 
 ### 🌍 Weather Service Example
 
