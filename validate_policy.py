@@ -1,8 +1,10 @@
-"""Policy schemas and models."""
+#!/usr/bin/env python
+"""Standalone policy validator."""
 
-from enum import Enum
+import yaml
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
+from enum import Enum
 
 
 class Effect(str, Enum):
@@ -30,7 +32,7 @@ class ConditionOperator(str, Enum):
 
 class PolicyCondition(BaseModel):
     """A condition in a policy rule."""
-    field: str = Field(..., description="Field path to evaluate (e.g., 'user.role', 'tool.name')")
+    field: str = Field(..., description="Field path to evaluate")
     operator: ConditionOperator = Field(..., description="Comparison operator")
     value: Union[str, int, float, bool, List[Any]] = Field(..., description="Value to compare against")
 
@@ -51,20 +53,6 @@ class ToolMatcher(BaseModel):
     tags: Optional[List[str]] = Field(None, description="Tool tags to match")
 
 
-class ResourceMatcher(BaseModel):
-    """Matches resources based on various criteria."""
-    uris: Optional[List[str]] = Field(None, description="Exact resource URIs to match")
-    patterns: Optional[List[str]] = Field(None, description="Wildcard patterns to match resource URIs")
-    schemes: Optional[List[str]] = Field(None, description="Resource schemes to match (e.g., user, admin, public)")
-
-
-class PromptMatcher(BaseModel):
-    """Matches prompts based on various criteria.""" 
-    names: Optional[List[str]] = Field(None, description="Exact prompt names to match")
-    patterns: Optional[List[str]] = Field(None, description="Wildcard patterns to match prompt names")
-    tags: Optional[List[str]] = Field(None, description="Prompt tags to match")
-
-
 class PolicyRule(BaseModel):
     """A single policy rule."""
     name: str = Field(..., description="Rule name")
@@ -73,8 +61,6 @@ class PolicyRule(BaseModel):
     
     agents: Optional[AgentMatcher] = Field(None, description="Agent matching criteria")
     tools: Optional[ToolMatcher] = Field(None, description="Tool matching criteria")
-    resources: Optional[ResourceMatcher] = Field(None, description="Resource matching criteria")
-    prompts: Optional[PromptMatcher] = Field(None, description="Prompt matching criteria")
     actions: List[str] = Field(default_factory=lambda: ["*"], description="Actions this rule applies to")
     
     conditions: List[PolicyCondition] = Field(
@@ -98,5 +84,34 @@ class PolicyConfig(BaseModel):
     # Metadata
     tags: List[str] = Field(default_factory=list, description="Policy tags")
     created_by: Optional[str] = Field(None, description="Policy creator")
-    
+
     model_config = {"use_enum_values": True}
+
+
+def validate_policy_file(filepath: str):
+    """Validate a policy YAML file."""
+    try:
+        with open(filepath, 'r') as f:
+            policy_data = yaml.safe_load(f)
+        
+        # Validate against schema
+        policy = PolicyConfig.model_validate(policy_data)
+        print(f'✅ Policy file "{filepath}" is valid!')
+        print(f'Policy: {policy.name}')
+        print(f'Rules: {len(policy.rules)}')
+        for rule in policy.rules:
+            print(f'  - {rule.name}: {rule.effect} (priority: {rule.priority})')
+        return True
+        
+    except ValidationError as e:
+        print(f'❌ Policy validation failed for "{filepath}":')
+        for error in e.errors():
+            print(f'  {error["loc"]}: {error["msg"]}')
+        return False
+    except Exception as e:
+        print(f'❌ Error reading "{filepath}": {e}')
+        return False
+
+
+if __name__ == "__main__":
+    validate_policy_file("examples/weather_policies.yaml")

@@ -1,0 +1,178 @@
+# Comprehensive Authorization Policies
+# Demonstrates authorization for tools, resources, and prompts
+
+name: "comprehensive_demo_policy"
+description: "Authorization policies for tools, resources, and prompts"
+version: "1.0"
+default_effect: "deny"
+
+rules:
+  # ========== ADMIN ACCESS ==========
+  
+  - name: "admin_full_access"
+    description: "Administrators have full access to all capabilities"
+    effect: "allow"
+    agents:
+      roles: ["admin"]
+    tools:
+      patterns: ["*"]  # All tools
+    resources:
+      patterns: ["*"]  # All resources
+    prompts:
+      patterns: ["*"]  # All prompts
+    actions: ["list", "call", "read", "get"]
+    priority: 1000
+
+  # ========== ANALYST ACCESS ==========
+  
+  - name: "analyst_data_access"
+    description: "Analysts can access data tools and resources"
+    effect: "allow"
+    agents:
+      roles: ["analyst"]
+    tools:
+      names: [
+        "query_database",     # Tool: Database queries
+        "get_user_info"       # Tool: User information
+      ]
+    resources:
+      uris: ["api://logs"]    # Resource: API logs
+    prompts:
+      names: ["sql_analysis"] # Prompt: SQL analysis
+    actions: ["list", "call", "read", "get"]
+    priority: 700
+
+  - name: "analyst_public_access"
+    description: "Analysts can access public resources"
+    effect: "allow"
+    agents:
+      roles: ["analyst"]
+    resources:
+      patterns: ["public://*"]  # All public resources
+    actions: ["list", "read"]
+    priority: 650
+
+  # ========== USER ACCESS ==========
+  
+  - name: "user_basic_tools"
+    description: "Users can access basic tools and their own resources"
+    effect: "allow"
+    agents:
+      roles: ["user"]
+    tools:
+      names: [
+        "get_user_info",      # Tool: User information
+        "public_info"         # Tool: Public information
+      ]
+    resources:
+      uris: ["user://profile"] # Resource: Own profile
+    prompts:
+      names: ["user_query"]   # Prompt: General queries
+    actions: ["list", "call", "read", "get"]
+    priority: 500
+
+  - name: "user_public_resources"
+    description: "Users can read public resources"
+    effect: "allow"
+    agents:
+      roles: ["user"]
+    resources:
+      patterns: ["public://*"]  # All public resources
+    actions: ["list", "read"]
+    priority: 450
+
+  # ========== PUBLIC ACCESS ==========
+  
+  - name: "public_limited_access"
+    description: "Public users can only access public resources and info"
+    effect: "allow"
+    agents:
+      roles: ["public"]
+    tools:
+      names: ["public_info"]  # Tool: Public information only
+    resources:
+      uris: ["public://docs"] # Resource: Public docs only
+    actions: ["list", "call", "read"]
+    priority: 300
+
+  # ========== SECURITY RULES (HIGH PRIORITY) ==========
+  
+  - name: "block_admin_tools_for_non_admins"
+    description: "Prevent non-admins from accessing admin tools"
+    effect: "deny"
+    agents:
+      roles: ["analyst", "user", "public"]
+    tools:
+      names: ["delete_user"]  # Tool: Dangerous admin tool
+    resources:
+      uris: ["admin://system"] # Resource: System config
+    prompts:
+      names: ["admin_report"] # Prompt: Admin reports
+    actions: ["*"]
+    priority: 900
+
+  - name: "block_private_resources"
+    description: "Prevent unauthorized access to private user resources"
+    effect: "deny"
+    agents:
+      roles: ["public"]
+    resources:
+      patterns: ["user://*"]  # All user resources
+    actions: ["*"]
+    priority: 850
+
+  - name: "block_sensitive_prompts"
+    description: "Prevent non-analysts from accessing SQL analysis"
+    effect: "deny"
+    agents:
+      roles: ["user", "public"]
+    prompts:
+      names: ["sql_analysis"]
+    actions: ["*"]
+    priority: 800
+
+  # ========== CONDITIONAL ACCESS ==========
+  
+  - name: "database_query_validation"
+    description: "Allow database queries only for safe operations"
+    effect: "allow"
+    agents:
+      roles: ["analyst"]
+    tools:
+      names: ["query_database"]
+    actions: ["call"]
+    conditions:
+      - field: "tool.args.sql"
+        operator: "regex"
+        value: "^\\s*SELECT\\s+.*"  # Only SELECT statements
+    priority: 750
+
+  - name: "block_dangerous_sql"
+    description: "Block dangerous SQL operations"
+    effect: "deny"
+    agents:
+      roles: ["analyst", "user"]
+    tools:
+      names: ["query_database"]
+    actions: ["call"]
+    conditions:
+      - field: "tool.args.sql"
+        operator: "regex"
+        value: "\\b(DROP|DELETE|ALTER|INSERT|UPDATE)\\b"
+    priority: 950
+
+  # ========== LISTING PERMISSIONS ==========
+  
+  - name: "allow_capability_discovery"
+    description: "Allow all authenticated users to see what's available to them"
+    effect: "allow"
+    agents:
+      roles: ["admin", "analyst", "user", "public"]
+    tools:
+      patterns: ["*"]
+    resources:
+      patterns: ["*"]
+    prompts:
+      patterns: ["*"]
+    actions: ["list"]
+    priority: 100

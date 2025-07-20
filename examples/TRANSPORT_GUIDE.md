@@ -6,9 +6,9 @@ Complete guide for using MCP Auth Guard with different FastMCP transport types.
 
 | Transport | Auth Method | Use Case | Command Example |
 |-----------|-------------|----------|-----------------|
-| **STDIO** | Environment Variables | Local development, testing | `python real_test_client.py admin` |
-| **HTTP** | HTTP Headers | Production, cloud services | `python real_test_client.py admin http https://api.com/mcp` |
-| **SSE** | HTTP Headers | Legacy systems, streaming | `python real_test_client.py admin sse https://api.com/sse` |
+| **STDIO** | Environment Variables | Local development, testing | `python test_client.py admin` |
+| **HTTP** | HTTP Headers | Production, cloud services | `python test_client.py admin http https://api.com/mcp` |
+| **SSE** | HTTP Headers | Legacy systems, streaming | `python test_client.py admin sse https://api.com/sse` |
 
 ## 🔧 STDIO Transport (Local Development)
 
@@ -30,12 +30,12 @@ MCP_X_API_KEY="demo-key-admin" MCP_X_USER_ROLES="admin" python weather_server.py
 ### Client Usage
 ```bash
 # Test all roles
-python real_test_client.py
+python test_client.py
 
 # Test specific role
-python real_test_client.py admin
-python real_test_client.py user
-python real_test_client.py intern
+python test_client.py admin
+python test_client.py user
+python test_client.py intern
 ```
 
 ### MCP Configuration
@@ -94,10 +94,10 @@ uvicorn weather_server:app --host 0.0.0.0 --port 8000
 ### Client Usage
 ```bash
 # Test with HTTP transport
-python real_test_client.py admin http https://api.example.com:8000/mcp
+python test_client.py admin http https://api.example.com:8000/mcp
 
 # Test all roles
-python real_test_client.py http https://api.example.com:8000/mcp
+python test_client.py http https://api.example.com:8000/mcp
 ```
 
 ### MCP Configuration
@@ -147,10 +147,10 @@ python -m fastmcp.cli run weather_server.py --transport sse --port 8000
 ### Client Usage
 ```bash
 # Test with SSE transport
-python real_test_client.py admin sse https://api.example.com:8000/sse
+python test_client.py admin sse https://api.example.com:8000/sse
 
 # Test all roles
-python real_test_client.py sse https://api.example.com:8000/sse
+python test_client.py sse https://api.example.com:8000/sse
 ```
 
 ### MCP Configuration
@@ -203,20 +203,20 @@ Client
 
 ```bash
 # STDIO Transport Tests
-python real_test_client.py                    # All roles
-python real_test_client.py admin              # Admin only
-python real_test_client.py user               # User only
-python real_test_client.py intern             # Intern only
+python test_client.py                    # All roles
+python test_client.py admin              # Admin only
+python test_client.py user               # User only
+python test_client.py intern             # Intern only
 
 # HTTP Transport Tests
-python real_test_client.py http https://api.example.com/mcp              # All roles
-python real_test_client.py admin http https://api.example.com/mcp        # Admin only
-python real_test_client.py user http https://api.example.com/mcp         # User only
+python test_client.py http https://api.example.com/mcp              # All roles
+python test_client.py admin http https://api.example.com/mcp        # Admin only
+python test_client.py user http https://api.example.com/mcp         # User only
 
 # SSE Transport Tests
-python real_test_client.py sse https://api.example.com/sse               # All roles
-python real_test_client.py admin sse https://api.example.com/sse         # Admin only
-python real_test_client.py user sse https://api.example.com/sse          # User only
+python test_client.py sse https://api.example.com/sse               # All roles
+python test_client.py admin sse https://api.example.com/sse         # Admin only
+python test_client.py user sse https://api.example.com/sse          # User only
 
 # Configuration Examples
 python weather_client_config.py examples     # Show all config examples
@@ -311,7 +311,7 @@ spec:
 ### Debug Commands
 ```bash
 # Enable debug logging
-DEBUG=true python real_test_client.py admin
+DEBUG=true python test_client.py admin
 
 # Test server connectivity
 curl -H "X-API-Key: demo-key-admin" https://api.example.com/mcp/ping

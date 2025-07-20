@@ -27,24 +27,32 @@ pip install mcp-auth-guard
 ```python
 from fastmcp import FastMCP
 from mcp_auth_guard import create_api_key_middleware
-
+import asyncio
 # Create your MCP server
 mcp = FastMCP("My Secure Server")
 
 @mcp.tool()
+def safe_tool(data: str) -> str:
+    """A safe tool that users can access."""
+    return f"Safe processing: {data}"
+
+@mcp.tool()  
 def sensitive_operation(data: str) -> str:
-    """A tool that needs authorization."""
-    return f"Processing: {data}"
+    """A sensitive tool that requires admin access."""
+    return f"Sensitive processing: {data}"
 
 # Add Auth Guard middleware
 auth_middleware = create_api_key_middleware(
     policies="./policies.yaml",
-    api_key_roles={"secret-key-123": ["user"]}
+    api_key_roles={
+        "user-key-123": ["user"],
+        "admin-key-456": ["admin"]
+    }
 )
 mcp.add_middleware(auth_middleware)
 
 # Run your server
-await mcp.run()
+asyncio.run(mcp.run(transport="http"))
 ```
 
 ### Simple Policy Configuration
@@ -72,6 +80,59 @@ rules:
       names: ["safe_tool", "read_only_tool"]
     actions: ["list", "call"]
 ```
+
+### Client Usage
+
+Connect to your secured server:
+
+
+```python
+# User client - can access safe tools
+import asyncio
+from fastmcp import Client
+
+client = Client({
+    "mcpServers": {
+        "my_service": {
+            "url": "http://localhost:8000/mcp",
+            "headers": {"X-API-Key": "user-key-123"}
+        }
+    }
+})
+
+async def main():
+    async with client:
+        # This works - user can access safe_tool
+        result = await client.call_tool("my_service", "safe_tool", {"data": "test"})
+        print(f"User result: {result}")
+        
+        # This would fail - user cannot access sensitive_operation
+        # result = await client.call_tool("my_service", "sensitive_operation", {"data": "test"})
+
+asyncio.run(main())
+```
+
+```python  
+# Admin client - can access all tools
+admin_client = Client({
+    "mcpServers": {
+        "my_service": {
+            "url": "http://localhost:8000/mcp", 
+            "headers": {"X-API-Key": "admin-key-456"}
+        }
+    }
+})
+
+async def admin_demo():
+    async with admin_client:
+        # Admin can access any tool
+        result = await admin_client.call_tool("my_service", "sensitive_operation", {"data": "admin"})
+        print(f"Admin result: {result}")
+
+asyncio.run(admin_demo())
+```
+
+**[→ Learn to write policies](examples/POLICY_GUIDE.md)**
 
 ## 📋 Examples
 
@@ -124,7 +185,7 @@ proxy_server.run(transport="http", port=4200)
 
 ### 🌍 Weather Service Example
 
-Check out the [**Weather Service Example**](examples/) - a complete working demo with **all transport types**:
+Check out the [**Weather Service Example**](examples/weather_service/) - a complete working demo with **all transport types**:
 
 ### 🌍 Weather Service Features
 - **Multiple user roles** (admin, user, intern) 
@@ -136,20 +197,19 @@ Check out the [**Weather Service Example**](examples/) - a complete working demo
 ### 🧪 Test with Real MCP Client
 
 ```bash
-cd examples
+cd examples/weather_service
 
 # Simple HTTP client examples
 python weather_server.py                    # Start server (terminal 1)
-python http_client_example.py               # Basic client (terminal 2)
+python basic_client.py                      # Basic client (terminal 2)
 python http_roles_demo.py                   # Role-based demo (terminal 2)
 
 # Comprehensive testing with all transports
-python real_test_client.py                  # Test all roles (STDIO)
-python real_test_client.py admin            # Test specific role
-python real_test_client.py admin http https://weather.api.com/mcp  # HTTP transport
+python test_client.py                       # Test all roles (STDIO)
+python test_client.py admin                 # Test specific role
+python test_client.py admin http https://weather.api.com/mcp  # HTTP transport
 
-# Configuration examples
-python weather_client_config.py examples    # Show all config formats
+# See examples/weather_service/ for complete demo
 ```
 
 ### 🎮 Interactive Demo

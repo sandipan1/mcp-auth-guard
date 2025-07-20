@@ -40,8 +40,30 @@ class PolicyEvaluator:
         if rule.agents and not self._matches_agent(rule.agents, auth_context):
             return False
 
-        # Check tool match
-        if rule.tools and not self._matches_tool(rule.tools, resource_context):
+        # Check capability match based on resource type
+        capability_matches = False
+        
+        # If rule has tools and this is a tool, check tool match
+        if rule.tools and resource_context.resource_type == "tools":
+            capability_matches = self._matches_tool(rule.tools, resource_context)
+        
+        # If rule has resources and this is a resource, check resource match  
+        elif rule.resources and resource_context.resource_type == "resources":
+            capability_matches = self._matches_resource(rule.resources, resource_context)
+            
+        # If rule has prompts and this is a prompt, check prompt match
+        elif rule.prompts and resource_context.resource_type == "prompts":
+            capability_matches = self._matches_prompt(rule.prompts, resource_context)
+            
+        # If rule has tools but resource is not a tool (legacy compatibility)
+        elif rule.tools and resource_context.resource_type in ["resources", "prompts"]:
+            capability_matches = self._matches_tool(rule.tools, resource_context)
+            
+        # If no specific matcher for this capability type, skip rule
+        elif not (rule.tools or rule.resources or rule.prompts):
+            capability_matches = True  # No capability restrictions
+        
+        if not capability_matches:
             return False
 
         # Check additional conditions
@@ -151,6 +173,61 @@ class PolicyEvaluator:
         # Check tags
         if tool_matcher.tags:
             if not any(tag in tool.tags for tag in tool_matcher.tags):
+                return False
+
+        return True
+
+    def _matches_resource(self, resource_matcher, resource_context: ResourceContext) -> bool:
+        """Check if resource matches rule criteria."""
+        resource = resource_context.resource
+
+        # Check exact URIs
+        if resource_matcher.uris:
+            if resource.name not in resource_matcher.uris:
+                return False
+
+        # Check URI patterns
+        if resource_matcher.patterns:
+            matched = False
+            for pattern in resource_matcher.patterns:
+                if fnmatch(resource.name, pattern):
+                    matched = True
+                    break
+
+            if not matched:
+                return False
+
+        # Check schemes (e.g., user://, admin://, public://)
+        if resource_matcher.schemes:
+            resource_scheme = resource.name.split("://")[0] if "://" in resource.name else ""
+            if resource_scheme not in resource_matcher.schemes:
+                return False
+
+        return True
+
+    def _matches_prompt(self, prompt_matcher, resource_context: ResourceContext) -> bool:
+        """Check if prompt matches rule criteria."""
+        prompt = resource_context.resource
+
+        # Check exact names
+        if prompt_matcher.names:
+            if prompt.name not in prompt_matcher.names:
+                return False
+
+        # Check patterns
+        if prompt_matcher.patterns:
+            matched = False
+            for pattern in prompt_matcher.patterns:
+                if fnmatch(prompt.name, pattern):
+                    matched = True
+                    break
+
+            if not matched:
+                return False
+
+        # Check tags
+        if prompt_matcher.tags:
+            if not any(tag in prompt.tags for tag in prompt_matcher.tags):
                 return False
 
         return True

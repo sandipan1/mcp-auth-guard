@@ -25,7 +25,7 @@ config = {
     }
 }
 
-client = Client(config,)
+client = Client(config)
 
 async def main():
     try:

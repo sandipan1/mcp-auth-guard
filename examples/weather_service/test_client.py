@@ -301,19 +301,19 @@ if __name__ == "__main__":
             # Show SSE transport example
             asyncio.run(test_sse_example())
         else:
-            print("Usage: python real_test_client.py [admin|user|intern|http|sse] [server_url]")
+            print("Usage: python test_client.py [admin|user|intern|http|sse] [server_url]")
     elif len(sys.argv) == 3:
         role_or_transport = sys.argv[1]
         url_or_transport = sys.argv[2]
         
         if role_or_transport in ["admin", "user", "intern"] and url_or_transport in ["http", "sse"]:
-            print(f"Usage: python real_test_client.py {role_or_transport} {url_or_transport} <server_url>")
+            print(f"Usage: python test_client.py {role_or_transport} {url_or_transport} <server_url>")
         elif role_or_transport in ["http", "sse"]:
             # Test with HTTP/SSE transport
             server_url = url_or_transport
             asyncio.run(run_comprehensive_tests(role_or_transport, server_url))
         else:
-            print("Usage: python real_test_client.py [admin|user|intern] [http|sse] <server_url>")
+            print("Usage: python test_client.py [admin|user|intern] [http|sse] <server_url>")
     elif len(sys.argv) == 4:
         role = sys.argv[1]
         transport_type = sys.argv[2] 
@@ -323,10 +323,10 @@ if __name__ == "__main__":
             # Test specific role with HTTP/SSE transport
             asyncio.run(test_single_role(role, transport_type, server_url))
         else:
-            print("Usage: python real_test_client.py [admin|user|intern] [http|sse] <server_url>")
+            print("Usage: python test_client.py [admin|user|intern] [http|sse] <server_url>")
     else:
         print("Usage:")
-        print("  python real_test_client.py                           # Test all roles with STDIO")
-        print("  python real_test_client.py [admin|user|intern]       # Test single role with STDIO")
-        print("  python real_test_client.py [http|sse] <server_url>   # Test all roles with HTTP/SSE")
-        print("  python real_test_client.py [role] [http|sse] <url>   # Test single role with HTTP/SSE")
+        print("  python test_client.py                           # Test all roles with STDIO")
+        print("  python test_client.py [admin|user|intern]       # Test single role with STDIO")
+        print("  python test_client.py [http|sse] <server_url>   # Test all roles with HTTP/SSE")
+        print("  python test_client.py [role] [http|sse] <url>   # Test single role with HTTP/SSE")
