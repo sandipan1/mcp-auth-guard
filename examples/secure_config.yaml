@@ -1,0 +1,58 @@
+# Secure API Key Configuration Example
+# Demonstrates proper API key to role mapping
+
+auth:
+  method: "api_key"
+  api_key_header: "X-API-Key"
+  
+  # Define valid API keys
+  api_keys:
+    - "admin-key-123"
+    - "user-key-456" 
+    - "intern-key-789"
+    - "readonly-key-000"
+  
+  # Map each API key to specific roles (SECURE)
+  api_key_roles:
+    "admin-key-123": ["admin"]
+    "user-key-456": ["user"]
+    "intern-key-789": ["intern"]
+    "readonly-key-000": ["readonly"]
+
+# Policy rules that use the mapped roles
+rules:
+  - name: "admin_access"
+    effect: "allow"
+    agents:
+      roles: ["admin"]
+    tools:
+      patterns: ["*"]
+    actions: ["*"]
+    priority: 1000
+
+  - name: "user_access"
+    effect: "allow"
+    agents:
+      roles: ["user"]
+    tools:
+      names: ["get_mars_weather", "get_venus_weather"]
+    actions: ["list", "call"]
+    priority: 500
+
+  - name: "intern_limited"
+    effect: "allow"
+    agents:
+      roles: ["intern"]
+    tools:
+      names: ["get_jupiter_weather"]
+    actions: ["list"]
+    priority: 300
+
+  - name: "readonly_list_only"
+    effect: "allow"
+    agents:
+      roles: ["readonly"]
+    tools:
+      patterns: ["*"]
+    actions: ["list"]
+    priority: 200

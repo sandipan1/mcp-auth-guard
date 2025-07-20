@@ -38,13 +38,19 @@ class APIKeyAuthenticator:
         # Extract additional information from headers
         user_id = headers.get("x-user-id", f"api_key_user_{hash(api_key) % 10000}")
         agent_id = headers.get("x-agent-id", "api_key_agent")
-        roles = headers.get("x-user-roles", "").split(",") if headers.get("x-user-roles") else ["api_user"]
+        
+        # Get roles from config mapping instead of trusting headers
+        if self.config.api_key_roles and api_key in self.config.api_key_roles:
+            roles = self.config.api_key_roles[api_key]
+        else:
+            # Fallback to default role if no mapping exists
+            roles = ["api_user"]
         
         return AuthContext(
             authenticated=True,
             auth_method=AuthMethod.API_KEY,
             user_id=user_id,
-            roles=[role.strip() for role in roles if role.strip()],
+            roles=roles,
             claims={"api_key": api_key},
             agent_id=agent_id
         )

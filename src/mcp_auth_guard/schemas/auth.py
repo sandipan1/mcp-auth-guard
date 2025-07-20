@@ -23,6 +23,10 @@ class AuthConfig(BaseModel):
     
     api_key_header: str = Field("X-API-Key", description="Header name for API key")
     api_keys: Optional[List[str]] = Field(None, description="Valid API keys")
+    api_key_roles: Optional[Dict[str, List[str]]] = Field(
+        None, 
+        description="Mapping of API keys to their allowed roles"
+    )
     
     header_mapping: Optional[Dict[str, str]] = Field(
         None, 
