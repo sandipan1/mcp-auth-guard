@@ -135,13 +135,19 @@ class AuthGuardMiddleware(Middleware):
         method_parts = context.method.split("/")
         resource_type = method_parts[0] if method_parts else "unknown"
         
+        # Handle timestamp conversion from datetime to float
+        timestamp = getattr(context, 'timestamp', None)
+        if timestamp is not None and hasattr(timestamp, 'timestamp'):
+            # Convert datetime to float timestamp
+            timestamp = timestamp.timestamp()
+        
         return ResourceContext(
             resource_type=resource_type,
             resource=tool_resource,
             action=action,
             method=context.method,
             request_id=getattr(context, 'request_id', None),
-            timestamp=getattr(context, 'timestamp', None)
+            timestamp=timestamp
         )
     
     async def _authorize_request(

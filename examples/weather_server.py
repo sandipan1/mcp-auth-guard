@@ -93,9 +93,11 @@ def create_auth_middleware() -> AuthGuardMiddleware:
     )
 
 
-async def main():
+
+
+if __name__ == "__main__":
     """Run the weather server with authentication."""
-    # Create the MCP server
+
     mcp = create_weather_server()
     
     # Add Auth Guard middleware
@@ -111,9 +113,4 @@ async def main():
     print("🔒 Policies loaded from weather_policies.yaml")
     print("📡 Server running on stdio transport")
     
-    # Run the server
-    await mcp.run()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(mcp.run(transport="http"))

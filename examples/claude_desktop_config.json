@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "weather_service_admin": {
+      "command": "python",
+      "args": ["./weather_server.py"],
+      "cwd": "/path/to/mcp-auth-guard/examples",
+      "env": {
+        "MCP_X_API_KEY": "demo-key-admin",
+        "MCP_X_USER_ROLES": "admin",
+        "MCP_X_USER_ID": "claude_admin",
+        "MCP_X_AGENT_ID": "claude_desktop"
+      }
+    },
+    "weather_service_user": {
+      "command": "python", 
+      "args": ["./weather_server.py"],
+      "cwd": "/path/to/mcp-auth-guard/examples",
+      "env": {
+        "MCP_X_API_KEY": "demo-key-user",
+        "MCP_X_USER_ROLES": "user", 
+        "MCP_X_USER_ID": "claude_user",
+        "MCP_X_AGENT_ID": "claude_desktop"
+      }
+    },
+    "weather_service_intern": {
+      "command": "python",
+      "args": ["./weather_server.py"],
+      "cwd": "/path/to/mcp-auth-guard/examples", 
+      "env": {
+        "MCP_X_API_KEY": "demo-key-intern",
+        "MCP_X_USER_ROLES": "intern",
+        "MCP_X_USER_ID": "claude_intern", 
+        "MCP_X_AGENT_ID": "claude_desktop"
+      }
+    }
+  }
+}

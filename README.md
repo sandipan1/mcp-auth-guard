@@ -75,16 +75,37 @@ rules:
 
 ## 📋 Examples
 
-Check out the [**Weather Service Example**](examples/) - a complete working demo showing:
+Check out the [**Weather Service Example**](examples/) - a complete working demo with **all transport types**:
 
-- Multiple user roles (admin, user, intern)
-- Conditional access (time-based restrictions)
-- Safety policies (blocking dangerous operations)
-- Comprehensive audit logging
+### 🌍 Weather Service Features
+- **Multiple user roles** (admin, user, intern) 
+- **Conditional access** (time-based restrictions)
+- **Safety policies** (blocking dangerous operations)
+- **Transport support** (STDIO, HTTP, SSE)
+- **Comprehensive audit logging**
+
+### 🧪 Test with Real MCP Client
 
 ```bash
-# Try the interactive demo
 cd examples
+
+# Simple HTTP client examples
+python weather_server.py                    # Start server (terminal 1)
+python http_client_example.py               # Basic client (terminal 2)
+python http_roles_demo.py                   # Role-based demo (terminal 2)
+
+# Comprehensive testing with all transports
+python real_test_client.py                  # Test all roles (STDIO)
+python real_test_client.py admin            # Test specific role
+python real_test_client.py admin http https://weather.api.com/mcp  # HTTP transport
+
+# Configuration examples
+python weather_client_config.py examples    # Show all config formats
+```
+
+### 🎮 Interactive Demo
+```bash
+# Try the policy simulation
 python test_client.py
 ```
 
@@ -219,17 +240,6 @@ resource_ctx = ResourceContext(
 decision = await engine.evaluate(auth_ctx, resource_ctx)
 print(f"Allowed: {decision.allowed}, Reason: {decision.reason}")
 ```
-
-## 📊 Comparison with Existing Solutions
-
-| Feature | MCP Auth Guard | Eunomia v1 | Custom Solutions |
-|---------|----------------|------------|------------------|
-| **Setup Complexity** | ⭐⭐⭐⭐⭐ Simple | ⭐⭐ Complex | ⭐ Very Complex |
-| **Policy Syntax** | ⭐⭐⭐⭐⭐ Intuitive YAML | ⭐⭐ Verbose JSON | ⭐ Custom Code |
-| **Performance** | ⭐⭐⭐⭐⭐ In-process | ⭐⭐⭐ Network calls | ⭐⭐⭐⭐ Variable |
-| **MCP Integration** | ⭐⭐⭐⭐⭐ Native | ⭐⭐⭐ External server | ⭐⭐ Manual |
-| **Type Safety** | ⭐⭐⭐⭐⭐ Full TypeScript/Python | ⭐⭐ Limited | ⭐ None |
-| **Developer Experience** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐ Fair | ⭐ Poor |
 
 ## 🔧 Advanced Features
 
