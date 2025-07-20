@@ -100,8 +100,11 @@ from mcp_auth_guard import create_api_key_middleware
 
 # Add Auth Guard middleware
 auth_middleware = create_api_key_middleware(
-    api_keys=["user-key-123", "admin-key-456"],
     policies="./policies.yaml",
+    api_key_roles={
+        "user-key-123": ["user"],
+        "admin-key-456": ["admin"]
+    },
     enable_audit_logging=True
 )
 
@@ -172,12 +175,16 @@ Simple and effective for service-to-service communication:
 from mcp_auth_guard import create_api_key_middleware
 
 middleware = create_api_key_middleware(
-    api_keys=["key1", "key2", "admin-key"],
-    policies="./policies.yaml"
+    policies="./policies.yaml",
+    api_key_roles={
+        "user-key-1": ["user"],
+        "user-key-2": ["user"],  
+        "admin-key": ["admin"]
+    }
 )
 
-# Clients send: X-API-Key: key1
-# Plus optional: X-User-Roles: admin,user
+# Clients send: X-API-Key: admin-key
+# Roles are determined by config, not headers (secure!)
 ```
 
 ### JWT Authentication

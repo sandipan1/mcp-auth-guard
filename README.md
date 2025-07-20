@@ -38,8 +38,8 @@ def sensitive_operation(data: str) -> str:
 
 # Add Auth Guard middleware
 auth_middleware = create_api_key_middleware(
-    api_keys=["secret-key-123"],
-    policies="./policies.yaml"
+    policies="./policies.yaml",
+    api_key_roles={"secret-key-123": ["user"]}
 )
 mcp.add_middleware(auth_middleware)
 
@@ -74,6 +74,55 @@ rules:
 ```
 
 ## 📋 Examples
+
+### 🔒 Securing Existing MCP Servers with Proxy
+
+Add authorization to **any existing MCP server** without modifying it:
+
+```python
+from fastmcp import Client, FastMCP
+from mcp_auth_guard import create_api_key_middleware
+
+# 1. Connect to existing SQLite MCP Server
+config = {
+    "mcpServers": {
+        "sqlite": {
+            "command": "uv",
+            "args": [
+                "--directory", "servers/src/sqlite",
+                "run", "mcp-server-sqlite",
+                "--db-path", "~/test.db"
+            ]
+        }
+    }
+}
+client = Client(config)
+
+# 2. Create proxy with authorization
+proxy_server = FastMCP.as_proxy(client)
+auth_middleware = create_api_key_middleware(
+    policies="./database_policies.yaml",
+    api_key_roles={
+        "read-only-key-123": ["reader"],    # SELECT queries only
+        "admin-key-456": ["admin"],         # Full database access
+        "analyst-key-789": ["analyst"]      # Queries + views
+    }
+)
+proxy_server.add_middleware(auth_middleware)
+
+# 3. Run authorized proxy
+proxy_server.run(transport="http", port=4200)
+```
+
+**Role-based Database Access**:
+- **`reader`** role: Can only execute SELECT queries and view table schemas
+- **`analyst`** role: Can query data, create views, but cannot modify database structure  
+- **`admin`** role: Full database access including CREATE, DROP, INSERT, UPDATE operations
+- **Security**: Automatically blocks dangerous SQL operations (DROP, DELETE, ALTER) for non-admin users
+
+**Benefits**: ✅ No server changes ✅ Role-based DB access ✅ SQL injection prevention ✅ Audit logging
+
+### 🌍 Weather Service Example
 
 Check out the [**Weather Service Example**](examples/) - a complete working demo with **all transport types**:
 
@@ -129,8 +178,12 @@ middleware = create_jwt_middleware(
 from mcp_auth_guard import create_api_key_middleware
 
 middleware = create_api_key_middleware(
-    api_keys=["key1", "key2", "key3"],
-    policies="./policies.yaml"
+    policies="./policies.yaml",
+    api_key_roles={
+        "admin-key-123": ["admin"],
+        "user-key-456": ["user"],
+        "readonly-key-789": ["readonly"]
+    }
 )
 ```
 

@@ -14,9 +14,14 @@ class APIKeyAuthenticator:
     def __init__(self, config: AuthConfig):
         """Initialize API key authenticator."""
         self.config = config
-        if not config.api_keys:
-            raise ValueError("API keys list is required for API key authentication")
-        self.valid_keys = set(config.api_keys)
+        
+        # Use api_key_roles as source of truth if available, fallback to api_keys
+        if config.api_key_roles:
+            self.valid_keys = set(config.api_key_roles.keys())
+        elif config.api_keys:
+            self.valid_keys = set(config.api_keys)
+        else:
+            raise ValueError("Either api_keys or api_key_roles is required for API key authentication")
     
     async def authenticate(self, headers: Dict[str, str]) -> AuthContext:
         """

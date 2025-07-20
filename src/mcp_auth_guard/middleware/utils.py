@@ -83,8 +83,9 @@ def create_jwt_middleware(
 
 
 def create_api_key_middleware(
-    api_keys: List[str],
     policies: Union[List[PolicyConfig], str, Path],
+    api_key_roles: Optional[dict] = None,
+    api_keys: Optional[List[str]] = None,
     api_key_header: str = "X-API-Key",
     **kwargs
 ) -> AuthGuardMiddleware:
@@ -92,19 +93,24 @@ def create_api_key_middleware(
     Create middleware with API key authentication.
     
     Args:
-        api_keys: List of valid API keys
         policies: Policy configurations
+        api_key_roles: Mapping of API keys to roles (preferred)
+        api_keys: List of valid API keys (fallback if no roles mapping)
         api_key_header: Header name for API key
         **kwargs: Additional configuration
         
     Returns:
         AuthGuardMiddleware with API key auth
     """
+    if not api_key_roles and not api_keys:
+        raise ValueError("Either api_key_roles or api_keys must be provided")
+        
     return create_middleware(
         auth_method=AuthMethod.API_KEY,
         policies=policies,
         api_keys=api_keys,
         api_key_header=api_key_header,
+        api_key_roles=api_key_roles,
         **kwargs
     )
 
